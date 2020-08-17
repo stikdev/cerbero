@@ -18,6 +18,7 @@
 
 import os
 import shutil
+import sys
 import tempfile
 
 from cerbero.config import Architecture
@@ -289,13 +290,25 @@ class RPMPackager(LinuxPackager):
     def _files_list(self, package_type):
         if isinstance(self.package, MetaPackage):
             return ''
+
+        version_tag = sys.version_info.major.toString() + sys.version_info.minor.toString()
+
         files = self.files_list(package_type)
         for f in [x for x in files if x.endswith('.py')]:
-            if f + 'c' not in files:
-                files.append(f + 'c')
-            if f + 'o' not in files:
-                files.append(f + 'o')
-        return '\n'.join([os.path.join('%{prefix}',  x) for x in files])
+            filepath, filename = os.path.split(f)
+            pycache_path = os.path.join(filepath, '__pycache__')
+
+            pyc_filename = os.path.splitext(filename)[0] + '.cpython' + version_tag + '.pyc'
+            pyc_path = os.path.join(pycache_path, pyc_filename)
+            if pyc_path not in files:
+                files.append(pyc_path)
+
+            pyo_filename = os.path.splitext(filename)[0] + '.cpython' + version_tag + '.opt-1.pyc'
+            pyo_path = os.path.join(pycache_path, pyo_filename)
+            if pyo_path not in files:
+                files.append(pyo_path)
+
+        return '\n'.join([os.path.join('%{prefix}', x) for x in files])
 
     def _devel_package_and_files(self):
         args = {}

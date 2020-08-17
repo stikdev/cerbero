@@ -1,3 +1,68 @@
+# Waymark Readme
+
+Cerbero is the build system for gstreamer. Cerbero requires some fixes to run properly on Amazon Linux, which are included in this repository.
+
+Here are the modified build instructions for Amazon Linux. The original Cerbero readme is further below.
+
+## Requirements
+
+ - Amazon Linux 2 EC2 instance or [virtual machine](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/amazon-linux-2-virtual-machine.html)
+ - 12gb available disk space. WARNING: The default EBS volume size for many EC2 instance types (8gb) is too small.
+ - 4gb ram
+
+## Install dependencies
+```
+# Ensure system is up-to-date
+sudo yum update
+sudo reboot
+
+# Install python 3, git, and alsa-lib-devel.
+# alsa-lib-devel is a gstreamer dependency that cerbero will fail to install,
+# likely because the alsa dev package has many different names on different
+# platforms. cerbero generally succeeds at automatically installing other
+# dependencies.
+sudo yum install python3 git alsa-lib-devel
+```
+
+## Create and activate python 3 virtual environment
+```
+python3 -m venv cerbero-venv
+source ./cerbero-venv/bin/activate
+```
+
+## Clone and navigate to repository
+```
+git clone https://github.com/stikdev/cerbero
+cd cerbero
+```
+
+## Bootstrap cerbero
+```
+# WARNING: cerbero-python3.sh temporarily replaces /usr/bin/python and
+# /usr/bin/python3 with symlinks to the virtual env python3 path.
+# This is because cerbero invokes python3 four different ways:
+#   'python3'
+#   'python'
+#   '/usr/bin/python3'
+#   '/usr/bin/python'
+# All four of these invokations MUST link to the same python3 executable.
+
+./cerbero-python3.sh bootstrap
+```
+
+## Build gstreamer
+```
+# The package (build) process has two steps: First it compiles all of
+# gstreamer's dependencies, which will take up to 8 hours, and second it will
+# package the dependencies into rpm files that are added to the home
+# directory, which will take up to 20 minutes.
+# Dependencies are only recompiled and repackaged on an as-needed basis.
+
+./cerbero-python3.sh package gstreamer-1.0
+```
+
+# Begin original readme:
+
 # Description
 
 Cerbero is a cross-platform build aggregator for Open Source projects that builds

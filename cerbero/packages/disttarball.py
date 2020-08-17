@@ -181,7 +181,7 @@ class DistTarball(PackagerBase):
             else:
                 tar_cmd += ['--bzip2']
         elif self.compress == 'xz':
-            tar_cmd += ['--use-compress-program=xz --threads=0']
+            tar_cmd += ['--use-compress-program=xz']
         else:
             raise AssertionError("Unknown tar compression: {}".format(self.compress))
         try:
